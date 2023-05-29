@@ -41,4 +41,21 @@ internal static class KernelConfigExtensions
                 throw new ArgumentException($"Invalid service type value: {kernelSettings.ServiceType}");
         }
     }
+
+    internal static void AddEmbeddingsBackend(this KernelConfig kernelConfig, KernelSettings kernelSettings)
+    {
+        switch (kernelSettings.ServiceType.ToUpperInvariant())
+        {
+            case KernelSettings.AzureOpenAI:
+                kernelConfig.AddAzureTextEmbeddingGenerationService(deploymentName: kernelSettings.EmbeddingModelId, endpoint: kernelSettings.Endpoint, apiKey: kernelSettings.ApiKey, serviceId: kernelSettings.ServiceId);
+                break;
+
+            case KernelSettings.OpenAI:
+                kernelConfig.AddOpenAITextEmbeddingGenerationService(modelId: kernelSettings.EmbeddingModelId, apiKey: kernelSettings.ApiKey, orgId: kernelSettings.OrgId, serviceId: kernelSettings.ServiceId);
+                break;
+
+            default:
+                throw new ArgumentException($"Invalid service type value: {kernelSettings.ServiceType}");
+        }
+    }
 }

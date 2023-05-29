@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Memory;
 
 var kernelSettings = KernelSettings.LoadSettings();
 
 var kernelConfig = new KernelConfig();
 kernelConfig.AddChatCompletionBackend(kernelSettings);
 // kernelConfig.AddCompletionBackend(kernelSettings);
+kernelConfig.AddEmbeddingsBackend(kernelSettings);
 
 using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
 {
@@ -15,7 +17,11 @@ using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
         .AddDebug();
 });
 
-IKernel kernel = new KernelBuilder().WithLogger(loggerFactory.CreateLogger<IKernel>()).WithConfiguration(kernelConfig).Build();
+IKernel kernel = new KernelBuilder()
+    .WithLogger(loggerFactory.CreateLogger<IKernel>())
+    .WithConfiguration(kernelConfig)
+    .WithMemoryStorage(new VolatileMemoryStore())
+    .Build();
 
 // await Skills.RunSkillFromFile(kernel);
 // Console.WriteLine("----------------------------------------");
@@ -25,5 +31,15 @@ IKernel kernel = new KernelBuilder().WithLogger(loggerFactory.CreateLogger<IKern
 // await Skills.RunSkillInlineMin(kernel);
 // Console.WriteLine("----------------------------------------");
 // await Chat.RunChat(kernel);
+// Console.WriteLine("----------------------------------------");
+// await Planner.RunSequentialPlanner(kernel);
+// Console.WriteLine("----------------------------------------");
 
-await Planner.RunSequentialPlanner(kernel);
+
+// await Embeddings.AddEmbeddings(kernel);
+// //await Embeddings.SearchMemory(kernel);
+// //await Embeddings.Recall(kernel);
+// await Embeddings.AddDocumentToMemory(kernel);
+// await Embeddings.SearchGitHub(kernel);
+
+await Chat.RunChatGPT(kernel);
