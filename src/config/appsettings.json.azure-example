@@ -1,0 +1,7 @@
+{
+  "serviceType": "AzureOpenAI",
+  "serviceId": "gpt-35-turbo",
+  "deploymentOrModelId": "gpt-35-turbo",
+  "endpoint": "",
+  "apiKey": ""
+}
