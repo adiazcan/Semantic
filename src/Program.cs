@@ -41,5 +41,9 @@ IKernel kernel = new KernelBuilder()
 // //await Embeddings.Recall(kernel);
 // await Embeddings.AddDocumentToMemory(kernel);
 // await Embeddings.SearchGitHub(kernel);
+// Console.WriteLine("----------------------------------------");
 
-await Chat.RunChatGPT(kernel);
+// await Chat.RunChatGPT(kernel);
+// Console.WriteLine("----------------------------------------");
+
+await Skills.RunNativePlugin(kernel);

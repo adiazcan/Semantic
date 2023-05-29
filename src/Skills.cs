@@ -87,4 +87,15 @@ public class Skills
 
         Console.WriteLine(summary2);
     }
+
+    public static async Task RunNativePlugin(IKernel kernel)
+    {
+        var myPlugin = kernel.ImportSkill(new MyCSharpPlugin(), "MyCSharpPlugin");
+        var context = new ContextVariables();
+
+        context.Set("INPUT","This is input.");
+
+        var output = await kernel.RunAsync(context,myPlugin["DupDup"]);
+        Console.WriteLine(output);
+    }
 }
