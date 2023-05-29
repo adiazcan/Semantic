@@ -1,3 +1,4 @@
+using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 
 public class MyCSharpPlugin
@@ -12,5 +13,13 @@ public class MyCSharpPlugin
     public string DupDup(string text)
     {
         return text + text;
+    }
+
+    [SKFunction("Joins a first and last name together")]
+    [SKFunctionContextParameter(Name = "firstname", Description = "Informal name you use")]
+    [SKFunctionContextParameter(Name = "lastname", Description = "More formal name you use")]
+    public string FullNamer(SKContext context)
+    {
+        return context["firstname"] + " " + context["lastname"];
     }
 }

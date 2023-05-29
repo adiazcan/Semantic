@@ -23,27 +23,41 @@ IKernel kernel = new KernelBuilder()
     .WithMemoryStorage(new VolatileMemoryStore())
     .Build();
 
+// 1. Skill from File
 // await Skills.RunSkillFromFile(kernel);
 // Console.WriteLine("----------------------------------------");
-// //Semantic Function Inline
+// 2. Semantic Function Inline
 // await Skills.RunSkillInline(kernel);
 // Console.WriteLine("----------------------------------------");
+// 3. Semantic Function Inline Min
 // await Skills.RunSkillInlineMin(kernel);
 // Console.WriteLine("----------------------------------------");
+// 4. Chat
 // await Chat.RunChat(kernel);
 // Console.WriteLine("----------------------------------------");
+// 5. Sequential Planner
 // await Planner.RunSequentialPlanner(kernel);
 // Console.WriteLine("----------------------------------------");
 
-
+//6. Embeddings
 // await Embeddings.AddEmbeddings(kernel);
 // //await Embeddings.SearchMemory(kernel);
 // //await Embeddings.Recall(kernel);
+
+// 7. Embeddings docs
 // await Embeddings.AddDocumentToMemory(kernel);
 // await Embeddings.SearchGitHub(kernel);
 // Console.WriteLine("----------------------------------------");
 
+// 8. Chat GPT
 // await Chat.RunChatGPT(kernel);
 // Console.WriteLine("----------------------------------------");
 
-await Skills.RunNativePlugin(kernel);
+// 9. Native Plugin
+//await Skills.RunNativePlugin(kernel);
+
+// 10. Semantic Plugin with Native Plugin
+//await Skills.RunSemanticWithNativePlugin(kernel);
+
+// 11. Native Plugin with Params
+//await Skills.RunNativePluginWithParams(kernel);

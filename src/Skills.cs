@@ -98,4 +98,26 @@ public class Skills
         var output = await kernel.RunAsync(context,myPlugin["DupDup"]);
         Console.WriteLine(output);
     }
+
+    public static async Task RunSemanticWithNativePlugin(IKernel kernel)
+    {
+        var myContext = new ContextVariables("*Twinnify"); 
+        var myCshPlugin = kernel.ImportSkill ( new MyCSharpPlugin(), "MyCSharpPlugin");
+        var mySemPlugin = kernel.ImportSemanticSkillFromDirectory("skills", "MySemanticPlugin");
+        var myOutput = await kernel.RunAsync(myContext,mySemPlugin["MySemanticFunction"]);
+
+        Console.WriteLine(myOutput);
+    }
+
+    public static async Task RunNativePluginWithParams(IKernel kernel)
+    {
+        var myContext = new ContextVariables(); 
+        myContext.Set("firstname","Sam");
+        myContext.Set("lastname","Appdev");
+
+        var myCshPlugin = kernel.ImportSkill ( new MyCSharpPlugin(), "MyCSharpPlugin");
+        var myOutput = await kernel.RunAsync(myContext,myCshPlugin["FullNamer"]);
+
+        Console.WriteLine(myOutput);
+    }
 }
