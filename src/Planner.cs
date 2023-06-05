@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
@@ -18,7 +19,7 @@ public class Planner
 
         Console.WriteLine("Original plan:\n");
         Console.WriteLine(JsonSerializer.Serialize(originalPlan, new JsonSerializerOptions { WriteIndented = true }));
-
+        
         string skPrompt = @"
             {{$input}}
 
@@ -33,13 +34,71 @@ public class Planner
         Console.WriteLine("Updated plan:\n");
         Console.WriteLine(JsonSerializer.Serialize(newPlan, new JsonSerializerOptions { WriteIndented = true }));
 
-        var originalPlanResult = await originalPlan.InvokeAsync();
+        // var originalPlanResult = await originalPlan.InvokeAsync();
 
-        Console.WriteLine("Original Plan results:\n");
-        Console.WriteLine(originalPlanResult.Result);
+        // Console.WriteLine("Original Plan results:\n");
+        // Console.WriteLine(originalPlanResult.Result);
 
         var newPlanResult = await kernel.RunAsync(newPlan);
         Console.WriteLine("New Plan results:\n");
         Console.WriteLine(newPlanResult.Result);
+    }
+
+    public static async Task RunActionPlannerWithIntent(IKernel kernel, string ask)
+    {
+        var planner = new SequentialPlanner(kernel);
+        var skillsDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills");
+        var densoPlugin = kernel.ImportSkill ( new DensoPlugin(), "DensoPlugin");
+        
+        var plan = await planner.CreatePlanAsync(ask);
+        Console.WriteLine("Plan:\n");
+        Console.WriteLine(JsonSerializer.Serialize(plan, new JsonSerializerOptions { WriteIndented = true }));
+
+        await ExecutePlanAsync(kernel, plan);
+        // var result = await kernel.RunAsync(plan);
+        // Console.WriteLine("Result:\n");
+        // Console.WriteLine(result.Result);
+    }
+
+    private static async Task<Plan> ExecutePlanAsync(IKernel kernel, Plan plan, string input = "", int maxSteps = 10)
+    {
+        Stopwatch sw = new();
+        sw.Start();
+
+        // loop until complete or at most N steps
+        try
+        {
+            for (int step = 1; plan.HasNextStep && step < maxSteps; step++)
+            {
+                if (string.IsNullOrEmpty(input))
+                {
+                    await plan.InvokeNextStepAsync(kernel.CreateNewContext());
+                    // or await kernel.StepAsync(plan);
+                }
+                else
+                {
+                    plan = await kernel.StepAsync(input, plan);
+                }
+
+                if (!plan.HasNextStep)
+                {
+                    Console.WriteLine($"Step {step} - COMPLETE!");
+                    Console.WriteLine(plan.State.ToString());
+                    break;
+                }
+
+                Console.WriteLine($"Step {step} - Results so far:");
+                Console.WriteLine(plan.State.ToString());
+            }
+        }
+        catch (KernelException e)
+        {
+            Console.WriteLine("Step - Execution failed:");
+            Console.WriteLine(e.Message);
+        }
+
+        sw.Stop();
+        Console.WriteLine($"Execution complete in {sw.ElapsedMilliseconds} ms!");
+        return plan;
     }
 }

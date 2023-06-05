@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 using Microsoft.SemanticKernel.Memory;
 
 var kernelSettings = KernelSettings.LoadSettings();
@@ -24,24 +26,31 @@ IKernel kernel = new KernelBuilder()
     .Build();
 
 // 1. Skill from File
-// await Skills.RunSkillFromFile(kernel);
+//await Skills.RunSkillFromFile(kernel);
+
+
 // Console.WriteLine("----------------------------------------");
 // 2. Semantic Function Inline
-// await Skills.RunSkillInline(kernel);
+//await Skills.RunSkillInline(kernel);
+
 // Console.WriteLine("----------------------------------------");
 // 3. Semantic Function Inline Min
+
 // await Skills.RunSkillInlineMin(kernel);
 // Console.WriteLine("----------------------------------------");
 // 4. Chat
-// await Chat.RunChat(kernel);
+
+//await Chat.RunChat(kernel);
+
 // Console.WriteLine("----------------------------------------");
 // 5. Sequential Planner
-// await Planner.RunSequentialPlanner(kernel);
+//await Planner.RunSequentialPlanner(kernel);
+
 // Console.WriteLine("----------------------------------------");
 
 //6. Embeddings
 // await Embeddings.AddEmbeddings(kernel);
-// //await Embeddings.SearchMemory(kernel);
+// await Embeddings.SearchMemory(kernel);
 // //await Embeddings.Recall(kernel);
 
 // 7. Embeddings docs
@@ -54,10 +63,12 @@ IKernel kernel = new KernelBuilder()
 // Console.WriteLine("----------------------------------------");
 
 // 9. Native Plugin
-//await Skills.RunNativePlugin(kernel);
+// await Skills.RunNativePlugin(kernel);
 
 // 10. Semantic Plugin with Native Plugin
-//await Skills.RunSemanticWithNativePlugin(kernel);
+await Skills.RunSemanticWithNativePlugin(kernel);
 
 // 11. Native Plugin with Params
-//await Skills.RunNativePluginWithParams(kernel);
+await Skills.RunNativePluginWithParams(kernel);
+
+// await Chat.RunDensoChat(kernel);
