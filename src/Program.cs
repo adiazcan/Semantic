@@ -6,11 +6,6 @@ using Microsoft.SemanticKernel.Memory;
 
 var kernelSettings = KernelSettings.LoadSettings();
 
-var kernelConfig = new KernelConfig();
-kernelConfig.AddChatCompletionBackend(kernelSettings);
-// kernelConfig.AddCompletionBackend(kernelSettings);
-kernelConfig.AddEmbeddingsBackend(kernelSettings);
-
 using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
 {
     builder
@@ -21,9 +16,11 @@ using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
 
 IKernel kernel = new KernelBuilder()
     .WithLogger(loggerFactory.CreateLogger<IKernel>())
-    .WithConfiguration(kernelConfig)
     .WithMemoryStorage(new VolatileMemoryStore())
+    .WithAzureTextEmbeddingGenerationService(deploymentName: kernelSettings.EmbeddingModelId, endpoint: kernelSettings.Endpoint, apiKey: kernelSettings.ApiKey, serviceId: kernelSettings.ServiceId)
+    .WithAzureChatCompletionService(deploymentName: kernelSettings.DeploymentOrModelId, endpoint: kernelSettings.Endpoint, apiKey: kernelSettings.ApiKey, serviceId: kernelSettings.ServiceId)
     .Build();
+
 
 // 1. Skill from File
 //await Skills.RunSkillFromFile(kernel);
@@ -66,9 +63,11 @@ IKernel kernel = new KernelBuilder()
 // await Skills.RunNativePlugin(kernel);
 
 // 10. Semantic Plugin with Native Plugin
-await Skills.RunSemanticWithNativePlugin(kernel);
+// await Skills.RunSemanticWithNativePlugin(kernel);
 
 // 11. Native Plugin with Params
-await Skills.RunNativePluginWithParams(kernel);
+// await Skills.RunNativePluginWithParams(kernel);
 
 // await Chat.RunDensoChat(kernel);
+
+await Planner.EmailSamplesAsync(kernel);
