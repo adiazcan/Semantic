@@ -45,20 +45,19 @@ public class Planner
         Console.WriteLine(newPlanResult.Result);
     }
 
-    public static async Task RunActionPlannerWithIntent(IKernel kernel, string ask)
+    public static async Task RunDensoPlannerWithIntent(IKernel kernel, string ask)
     {
         var planner = new SequentialPlanner(kernel);
         var skillsDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills");
-        var densoPlugin = kernel.ImportSkill ( new DensoPlugin(), "DensoPlugin");
+
+        kernel.ImportSemanticSkillFromDirectory(skillsDirectory, "DensoChatPlugin");
+        kernel.ImportSkill ( new DensoPlugin(), "DensoPlugin");
         
         var plan = await planner.CreatePlanAsync(ask);
         Console.WriteLine("Plan:\n");
         Console.WriteLine(JsonSerializer.Serialize(plan, new JsonSerializerOptions { WriteIndented = true }));
 
         await ExecutePlanAsync(kernel, plan);
-        // var result = await kernel.RunAsync(plan);
-        // Console.WriteLine("Result:\n");
-        // Console.WriteLine(result.Result);
     }
 
     public static async Task EmailSamplesAsync(IKernel kernel)

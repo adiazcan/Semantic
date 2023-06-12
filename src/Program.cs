@@ -70,4 +70,7 @@ IKernel kernel = new KernelBuilder()
 
 // await Chat.RunDensoChat(kernel);
 
-await Planner.EmailSamplesAsync(kernel);
+//await Planner.EmailSamplesAsync(kernel);
+
+// await Planner.RunDensoPlannerWithIntent(kernel, "cuál es tu velocidad y ponte a trabajar. ");
+await Planner.RunDensoPlannerWithIntent(kernel, "si tu velocidad está por encima del 30%, ponte a trabajar. ");

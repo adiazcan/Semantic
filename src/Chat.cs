@@ -131,7 +131,7 @@ public class Chat
         // var message1 = "¿cuál es tu velocidad? ponte a trabajar y a bailar";
         var message1 = "Si tu velocidad está por debajo del 20%, ponte a trabajar";
 
-        await Planner.RunActionPlannerWithIntent(kernel, message1); 
+        await Planner.RunDensoPlannerWithIntent(kernel, message1); 
         await SendChatMessage(message1, chatGPT, chat);
 
         // await SendChatMessage("I would like a non-fiction book suggestion about Greece history. Please only list one book.", chatGPT, chat);

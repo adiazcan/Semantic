@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "description": "Turn a scenario into a creative or humorous excuse to send your boss",
+  "description": "Allows people to chat with the AI Digital Twin",
   "type": "completion",
   "completion": {
-    "max_tokens": 60,
-    "temperature": 0.5,
+    "max_tokens": 1000,
+    "temperature": 0.7,
     "top_p": 0,
     "presence_penalty": 0,
     "frequency_penalty": 0
