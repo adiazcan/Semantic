@@ -15,9 +15,9 @@ public class DensoPlugin
         return "DANCE";
     }
 
-    [SKFunction("Get robot speed")]
-    public string Speed()
-    {
-        return "25%";
-    }
+    // [SKFunction("Get robot speed")]
+    // public string Speed()
+    // {
+    //     return "25%";
+    // }
 }

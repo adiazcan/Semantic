@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
+using Microsoft.SemanticKernel.Orchestration;
 
 public class Planner
 {
@@ -20,7 +21,7 @@ public class Planner
 
         Console.WriteLine("Original plan:\n");
         Console.WriteLine(JsonSerializer.Serialize(originalPlan, new JsonSerializerOptions { WriteIndented = true }));
-        
+
         string skPrompt = @"
             {{$input}}
 
@@ -51,8 +52,8 @@ public class Planner
         var skillsDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills");
 
         kernel.ImportSemanticSkillFromDirectory(skillsDirectory, "DensoChatPlugin");
-        kernel.ImportSkill ( new DensoPlugin(), "DensoPlugin");
-        
+        kernel.ImportSkill(new DensoPlugin(), "DensoPlugin");
+
         var plan = await planner.CreatePlanAsync(ask);
         Console.WriteLine("Plan:\n");
         Console.WriteLine(JsonSerializer.Serialize(plan, new JsonSerializerOptions { WriteIndented = true }));
@@ -66,11 +67,11 @@ public class Planner
         kernel.ImportSkill(new EmailSkill(), "email");
 
         // Load additional skills to enable planner to do non-trivial asks.
-        string folder = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills");;
+        string folder = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills"); ;
         kernel.ImportSemanticSkillFromDirectory(folder,
             "SummarizeSkill",
             "WriterSkill");
-            
+
         var planner = new SequentialPlanner(kernel, new SequentialPlannerConfig());
         var plan = await planner.CreatePlanAsync("Summarize an input, translate to spanish, and e-mail to John Doe");
 
@@ -94,11 +95,57 @@ public class Planner
             "at any time through a web application. Gada-i uses Microsoft Azure technology and follows its security paradigm. " +
             "If you are interested in learning more about Gada-i and how it can benefit your business, please visit our website " +
             "or contact us for a free demo. We would love to hear from you and answer any questions you may have.";
-        
+
         Console.WriteLine("======== Sequential Planner - Execute Email Plan ========");
 
         await ExecutePlanAsync(kernel, plan, input, 5);
-    }    
+    }
+
+    public static async Task EmailAllCustomersAsync(IKernel kernel)
+    {
+        Console.WriteLine("======== Sequential Planner - Create Email Plan ========");
+
+        kernel.ImportSkill(new EmailSkill(), "email");
+
+        using HttpClient importHttpClient = new();
+        importHttpClient.DefaultRequestHeaders.Add("User-Agent", "Microsoft-Semantic-Kernel");
+        // await kernel.ImportChatGptPluginSkillFromUrlAsync(importHttpClient, "https://raw.githubusercontent.com/microsoft/Semantic-Kernel/main/samples/EmailAllCustomers/EmailAllCustomersPlugin.json");
+        await kernel.
+
+        // Load additional skills to enable planner to do non-trivial asks.
+        string folder = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills"); ;
+        kernel.ImportSemanticSkillFromDirectory(folder,
+            "SummarizeSkill",
+            "WriterSkill");
+
+        var planner = new SequentialPlanner(kernel, new SequentialPlannerConfig());
+        var plan = await planner.CreatePlanAsync("Summarize an input, translate to spanish, and e-mail to John Doe");
+
+        // Original plan:
+        // Goal: Summarize an input, translate to french, and e-mail to John Doe
+
+        // Steps:
+        // - SummarizeSkill.Summarize INPUT='' =>
+        // - WriterSkill.Translate language='French' INPUT='' => TRANSLATED_SUMMARY
+        // - email.GetEmailAddress INPUT='John Doe' => EMAIL_ADDRESS
+        // - email.SendEmail INPUT='$TRANSLATED_SUMMARY' email_address='$EMAIL_ADDRESS' =>
+
+        Console.WriteLine("Original plan:");
+        Console.WriteLine(JsonSerializer.Serialize(plan, new JsonSerializerOptions { WriteIndented = true }));
+
+        var input =
+            "We are writing to introduce you to Gada-i, a product from ENCAMINA that helps you with intelligent document " +
+            "archiving in Azure. Gada-i is an artificial intelligence service that automatically classifies and manages the " +
+            "lifecycle of your documents, saving you storage costs and improving your document security. Gada-i can connect to " +
+            "your existing document management system or corporate repository and allow you to access your archived documents " +
+            "at any time through a web application. Gada-i uses Microsoft Azure technology and follows its security paradigm. " +
+            "If you are interested in learning more about Gada-i and how it can benefit your business, please visit our website " +
+            "or contact us for a free demo. We would love to hear from you and answer any questions you may have.";
+
+        Console.WriteLine("======== Sequential Planner - Execute Email Plan ========");
+
+        await ExecutePlanAsync(kernel, plan, input, 5);
+    }
 
     private static async Task<Plan> ExecutePlanAsync(IKernel kernel, Plan plan, string input = "", int maxSteps = 10)
     {
@@ -122,12 +169,12 @@ public class Planner
 
                 if (!plan.HasNextStep)
                 {
-                    PrintStep($"Step {step} {plan.Steps[step-1].Name} - COMPLETE!");
+                    PrintStep($"Step {step} {plan.Steps[step - 1].Name} - COMPLETE!");
                     Console.WriteLine(plan.State.ToString());
                     break;
                 }
 
-                PrintStep($"Step {step} {plan.Steps[step-1].Name} - Results so far:");
+                PrintStep($"Step {step} {plan.Steps[step - 1].Name} - Results so far:");
                 Console.WriteLine(plan.State.ToString());
             }
         }
