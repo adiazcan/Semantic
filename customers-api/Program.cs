@@ -1,18 +1,32 @@
+using Microsoft.Extensions.FileProviders;
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// builder.Services.AddSwaggerGen(c =>
+// {
+//     c.AddServer(new Microsoft.OpenApi.Models.OpenApiServer { Url = "/" }); // add absolute URL
+// });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+    {
+        var scheme = httpReq.Scheme;
+        var host = httpReq.Host.Value;
+        var basePath = httpReq.PathBase.Value.TrimEnd('/');
+        var serverUrl = $"{scheme}://{host}{basePath}";
+        swaggerDoc.Servers = new List<OpenApiServer> { new OpenApiServer { Url = serverUrl } };
+    });
+});
+app.UseSwaggerUI();
+
 
 var summaries = new[]
 {
@@ -49,6 +63,12 @@ app.MapGet("customers", () =>
 .WithName("GetCustomers")
 .WithDescription("Get all customers")
 .WithOpenApi();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), ".well-known")),
+    RequestPath = "/.well-known"
+});
 
 app.Run();
 
