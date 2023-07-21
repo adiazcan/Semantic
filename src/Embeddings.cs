@@ -1,5 +1,5 @@
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.CoreSkills;
+using Microsoft.SemanticKernel.Skills.Core;
 
 public class Embeddings
 {
@@ -29,8 +29,8 @@ public class Embeddings
 
         foreach (var q in questions)
         {
-            var response = await kernel.Memory.SearchAsync(MemoryCollectionName, q).FirstOrDefaultAsync();
-            Console.WriteLine(q + " " + response?.Metadata.Text);
+            // var response = kernel.Memory.SearchAsync(MemoryCollectionName, q);
+            // Console.WriteLine(q + " " + await response ?.Metadata.Text);
         }        
     }
 

@@ -3,5 +3,6 @@
   "serviceId": "gpt-35-turbo",
   "deploymentOrModelId": "gpt-35-turbo",
   "endpoint": "",
-  "apiKey": ""
+  "apiKey": "",
+  "BingApiKey": ""
 }

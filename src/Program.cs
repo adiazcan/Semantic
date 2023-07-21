@@ -3,6 +3,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Reliability;
 
 var kernelSettings = KernelSettings.LoadSettings();
 
@@ -15,10 +16,21 @@ using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
 });
 
 IKernel kernel = new KernelBuilder()
+    .Configure(c => c.SetDefaultHttpRetryConfig(new HttpRetryConfig {
+      MaxRetryCount = 3,
+      UseExponentialBackoff = true,
+      MinRetryDelay = TimeSpan.FromSeconds(3)  
+    }))
     .WithLogger(loggerFactory.CreateLogger<IKernel>())
     .WithMemoryStorage(new VolatileMemoryStore())
     .WithAzureTextEmbeddingGenerationService(deploymentName: kernelSettings.EmbeddingModelId, endpoint: kernelSettings.Endpoint, apiKey: kernelSettings.ApiKey, serviceId: kernelSettings.ServiceId)
-    .WithAzureChatCompletionService(deploymentName: kernelSettings.DeploymentOrModelId, endpoint: kernelSettings.Endpoint, apiKey: kernelSettings.ApiKey, serviceId: kernelSettings.ServiceId)
+    .WithAzureChatCompletionService(
+        deploymentName: kernelSettings.DeploymentOrModelId, 
+        endpoint: kernelSettings.Endpoint, 
+        apiKey: kernelSettings.ApiKey, 
+        serviceId: kernelSettings.ServiceId,
+        alsoAsTextCompletion: true, 
+        setAsDefault: true)
     .Build();
 
 
@@ -76,3 +88,6 @@ IKernel kernel = new KernelBuilder()
 //await Planner.RunDensoPlannerWithIntent(kernel, "si tu velocidad está por debajo del 30%, ponte a trabajar. ");
 
 
+// await Planner.EmailAllCustomersAsync(kernel);
+
+await Planner.BingStepwisePlanner(kernel, kernelSettings.BingApiKey);

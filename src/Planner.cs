@@ -3,7 +3,10 @@ using System.Text.Json;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
-using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.Skills.Web;
+using Microsoft.SemanticKernel.Skills.Web.Bing;
+using Microsoft.SemanticKernel.Skills.Core;
+using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
 
 public class Planner
 {
@@ -108,9 +111,9 @@ public class Planner
         kernel.ImportSkill(new EmailSkill(), "email");
 
         using HttpClient importHttpClient = new();
-        importHttpClient.DefaultRequestHeaders.Add("User-Agent", "Microsoft-Semantic-Kernel");
-        // await kernel.ImportChatGptPluginSkillFromUrlAsync(importHttpClient, "https://raw.githubusercontent.com/microsoft/Semantic-Kernel/main/samples/EmailAllCustomers/EmailAllCustomersPlugin.json");
-        await kernel.
+        var pluginParams = new OpenApiSkillExecutionParameters(importHttpClient);
+        await kernel.ImportChatGptPluginSkillFromUrlAsync("Customers", new Uri("http://localhost:5073/.well-known/ai-plugin.json"), pluginParams);
+        // await kernel.ImportOpenApiSkillFromUrlAsync("GitHub", new Uri("https://raw.githubusercontent.com/microsoft/semantic-kernel/main/samples/dotnet/openapi-skills/GitHubSkill/openapi.json"), importHttpClient);
 
         // Load additional skills to enable planner to do non-trivial asks.
         string folder = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills"); ;
@@ -119,7 +122,7 @@ public class Planner
             "WriterSkill");
 
         var planner = new SequentialPlanner(kernel, new SequentialPlannerConfig());
-        var plan = await planner.CreatePlanAsync("Summarize an input, translate to spanish, and e-mail to John Doe");
+        var plan = await planner.CreatePlanAsync("Summarize an input, translate to spanish, and e-mail to all customers");
 
         // Original plan:
         // Goal: Summarize an input, translate to french, and e-mail to John Doe
@@ -145,6 +148,49 @@ public class Planner
         Console.WriteLine("======== Sequential Planner - Execute Email Plan ========");
 
         await ExecutePlanAsync(kernel, plan, input, 5);
+    }
+
+    public static async Task BingStepwisePlanner(IKernel kernel, string BingApiKey)
+    {
+        var question = "Who is the current president of the United States? What is his current age divided by 2";
+        // "Who is Leo DiCaprio's girlfriend? What is her current age raised to the (his current age)/100 power?",
+        // "What is the capital of France? Who is that cities current mayor? What percentage of their life has been in the 21st century as of today?",
+        // "What is the current day of the calendar year? Using that as an angle in degrees, what is the area of a unit circle with that angle?"
+
+        var bingConnector = new BingConnector(BingApiKey);
+        var webSearchEngineSkill = new WebSearchEngineSkill(bingConnector);
+
+        kernel.ImportSkill(webSearchEngineSkill, "WebSearch");
+        kernel.ImportSkill(new LanguageCalculatorSkill(kernel), "advancedCalculator");
+        kernel.ImportSkill(new TimeSkill(), "time");
+
+        Console.WriteLine("*****************************************************");
+        Stopwatch sw = new();
+        Console.WriteLine("Question: " + question);
+
+        var plannerConfig = new Microsoft.SemanticKernel.Planning.Stepwise.StepwisePlannerConfig();
+        plannerConfig.ExcludedFunctions.Add("TranslateMathProblem");
+        plannerConfig.MinIterationTimeMs = 1500;
+        plannerConfig.MaxTokens = 4000;
+
+        StepwisePlanner planner = new(kernel, plannerConfig);
+        sw.Start();
+        var plan = planner.CreatePlan(question);
+
+        var result = await plan.InvokeAsync(kernel.CreateNewContext());
+        Console.WriteLine("Result: " + result);
+        if (result.Variables.TryGetValue("stepCount", out string? stepCount))
+        {
+            Console.WriteLine("Steps Taken: " + stepCount);
+        }
+
+        if (result.Variables.TryGetValue("skillCount", out string? skillCount))
+        {
+            Console.WriteLine("Skills Used: " + skillCount);
+        }
+
+        Console.WriteLine("Time Taken: " + sw.Elapsed);
+        Console.WriteLine("*****************************************************");
     }
 
     private static async Task<Plan> ExecutePlanAsync(IKernel kernel, Plan plan, string input = "", int maxSteps = 10)
