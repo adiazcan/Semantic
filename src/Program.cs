@@ -46,7 +46,7 @@ var kernel = new KernelBuilder()
         deploymentName: kernelSettings.DeploymentOrModelId, 
         endpoint: kernelSettings.Endpoint, 
         apiKey: kernelSettings.ApiKey, 
-        serviceId: kernelSettings.ServiceId, 
+        serviceId: "AzureOpenAIChat", 
         alsoAsTextCompletion: true,
         setAsDefault: true
     )

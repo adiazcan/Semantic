@@ -1,4 +1,8 @@
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.TemplateEngine;
 
 public class Skills
 {
@@ -26,23 +30,18 @@ public class Skills
 
         var promptConfig = new PromptTemplateConfig
         {
-            Completion =
-            {
-                MaxTokens = 2000,
-                Temperature = 0.2,
-                TopP = 0.5,
+            ModelSettings = new List<AIRequestSettings>() {
+                new OpenAIRequestSettings() { ServiceId = "AzureOpenAIChat", MaxTokens = 2000, Temperature = 0.2, TopP = 0.5 }
             }
         };
-
+            
         var promptTemplate = new PromptTemplate(
             skPrompt,
             promptConfig,
             kernel
         );
 
-        var functionConfig = new SemanticFunctionConfig(promptConfig, promptTemplate);
-
-        var summaryFunction = kernel.RegisterSemanticFunction("MySkill", "Summary", functionConfig);
+        var summaryFunction = kernel.RegisterSemanticFunction("MySummary", promptConfig, promptTemplate);
 
         var input = @"
             Demo (ancient Greek poet)
@@ -55,9 +54,9 @@ public class Skills
             In the poem, Demo explains that Memnon has shown her special respect. In return, Demo offers the gift for poetry, as a gift to the hero. At the end of this epigram, she addresses Memnon, highlighting his divine status by recalling his strength and holiness.[2]
             Demo, like Julia Balbilla, writes in the artificial and poetic Aeolic dialect. The language indicates she was knowledgeable in Homeric poetry—'bearing a pleasant gift', for example, alludes to the use of that phrase throughout the Iliad and Odyssey.[a][2]";
 
-        var summary = await summaryFunction.InvokeAsync(input);
+        var result = await kernel.RunAsync(input, summaryFunction);
 
-        Console.WriteLine(summary);
+        Console.WriteLine(result.GetValue<string>());
     }
 
     public static async Task RunSkillInlineMin(IKernel kernel)
@@ -78,18 +77,18 @@ public class Skills
             does not conflict with the First or Second Law.
         ";
 
-        var tldrFunction = kernel.CreateSemanticFunction(skPrompt, maxTokens: 200, temperature: 0, topP: 0.5);
+        var tldrFunction = kernel.CreateSemanticFunction(skPrompt, new OpenAIRequestSettings() { ServiceId = "AzureOpenAIChat", MaxTokens = 200, Temperature = 0, TopP = 0.5 });
 
-        var summary2 = await tldrFunction.InvokeAsync(textToSummarize);
+        var summary2 = await tldrFunction.InvokeAsync(textToSummarize, kernel);
 
         Console.WriteLine(summary2);
     }
 
     public static async Task RunNativePlugin(IKernel kernel)
     {
-        var myPlugin = kernel.ImportSkill(new MyCSharpPlugin(), "MyCSharpPlugin");
-        var context = new ContextVariables();
+        var myPlugin = kernel.ImportFunctions(new MyCSharpPlugin(), "MyCSharpPlugin");
 
+        var context = new ContextVariables();
         context.Set("INPUT","This is input.");
 
         var output = await kernel.RunAsync(context,myPlugin["DupDup"]);
@@ -99,9 +98,12 @@ public class Skills
     public static async Task RunSemanticWithNativePlugin(IKernel kernel)
     {
         var myContext = new ContextVariables("*Twinnify"); 
-        var myCshPlugin = kernel.ImportSkill ( new MyCSharpPlugin(), "MyCSharpPlugin");
-        var mySemPlugin = kernel.ImportSemanticSkillFromDirectory("skills", "MySemanticPlugin");
-        var myOutput = await kernel.RunAsync(myContext,mySemPlugin["MySemanticFunction"]);
+        
+        var myCshPlugin = kernel.ImportFunctions ( new MyCSharpPlugin(), "MyCSharpPlugin");
+
+        var mySemPlugin = kernel.ImportSemanticFunctionsFromDirectory("skills", "MySemanticPlugin");
+        
+        var myOutput = await kernel.RunAsync(myContext, mySemPlugin["MySemanticFunction"]);
 
         Console.WriteLine(myOutput);
     }
@@ -112,7 +114,7 @@ public class Skills
         myContext.Set("firstname","Sam");
         myContext.Set("lastname","Appdev");
 
-        var myCshPlugin = kernel.ImportSkill ( new MyCSharpPlugin(), "MyCSharpPlugin");
+        var myCshPlugin = kernel.ImportFunctions ( new MyCSharpPlugin(), "MyCSharpPlugin");
         var myOutput = await kernel.RunAsync(myContext,myCshPlugin["FullNamer"]);
 
         Console.WriteLine(myOutput);
