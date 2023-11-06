@@ -1,3 +1,4 @@
 {
-    "dotnet.defaultSolution": "src.sln"
+    "dotnet.defaultSolution": "src.sln",
+    "FSharp.suggestGitignore": false
 }

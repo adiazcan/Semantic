@@ -1,15 +1,12 @@
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticKernel.SemanticFunctions;
 
 public class Skills
 {
-
     public static async Task RunSkillFromFile(IKernel kernel)
     {
         // note: using skills from the repo
         var skillsDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills");
-        var skill = kernel.ImportSemanticSkillFromDirectory(skillsDirectory, "FunSkill");
+        var skill = kernel.ImportSemanticFunctionsFromDirectory(skillsDirectory, "FunSkill");
 
         var context = new ContextVariables();
         context.Set("input", "Time travel to dinosaur age");

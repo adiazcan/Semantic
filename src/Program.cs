@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Plugins.Memory;
 using Microsoft.SemanticKernel.Reliability;
+using Microsoft.SemanticKernel.Reliability.Basic;
 
 var kernelSettings = KernelSettings.LoadSettings();
 
@@ -15,27 +16,45 @@ using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
         .AddDebug();
 });
 
-IKernel kernel = new KernelBuilder()
-    .Configure(c => c.SetDefaultHttpRetryConfig(new HttpRetryConfig {
-      MaxRetryCount = 3,
-      UseExponentialBackoff = true,
-      MinRetryDelay = TimeSpan.FromSeconds(3)  
-    }))
-    .WithLogger(loggerFactory.CreateLogger<IKernel>())
-    .WithMemoryStorage(new VolatileMemoryStore())
-    .WithAzureTextEmbeddingGenerationService(deploymentName: kernelSettings.EmbeddingModelId, endpoint: kernelSettings.Endpoint, apiKey: kernelSettings.ApiKey, serviceId: kernelSettings.ServiceId)
+var memory = new MemoryBuilder()
+    .WithLoggerFactory(loggerFactory)
+    .WithAzureTextEmbeddingGenerationService(
+        deploymentName: kernelSettings.EmbeddingModelId, 
+        endpoint: kernelSettings.Endpoint, 
+        apiKey: kernelSettings.ApiKey, 
+        serviceId: kernelSettings.ServiceId
+    )
+    .WithMemoryStore(new VolatileMemoryStore())
+    .Build();
+
+var kernel = new KernelBuilder()
+    .WithLoggerFactory(loggerFactory)
+    .WithRetryBasic(
+        new BasicRetryConfig { 
+            MaxRetryCount = 3, 
+            UseExponentialBackoff = true, 
+            MinRetryDelay = TimeSpan.FromSeconds(3) 
+        }
+    )
+    .WithAzureTextEmbeddingGenerationService(
+        deploymentName: kernelSettings.EmbeddingModelId, 
+        endpoint: kernelSettings.Endpoint, 
+        apiKey: kernelSettings.ApiKey, 
+        serviceId: kernelSettings.ServiceId
+    )
     .WithAzureChatCompletionService(
         deploymentName: kernelSettings.DeploymentOrModelId, 
         endpoint: kernelSettings.Endpoint, 
         apiKey: kernelSettings.ApiKey, 
-        serviceId: kernelSettings.ServiceId,
-        alsoAsTextCompletion: true, 
-        setAsDefault: true)
+        serviceId: kernelSettings.ServiceId, 
+        alsoAsTextCompletion: true,
+        setAsDefault: true
+    )
     .Build();
 
 
 // 1. Skill from File
-//await Skills.RunSkillFromFile(kernel);
+await Skills.RunSkillFromFile(kernel);
 
 
 // Console.WriteLine("----------------------------------------");
@@ -88,6 +107,6 @@ IKernel kernel = new KernelBuilder()
 //await Planner.RunDensoPlannerWithIntent(kernel, "si tu velocidad está por debajo del 30%, ponte a trabajar. ");
 
 
-// await Planner.EmailAllCustomersAsync(kernel);
+//await Planner.EmailAllCustomersAsync(kernel);
 
-await Planner.BingStepwisePlanner(kernel, kernelSettings.BingApiKey);
+// await Planner.BingStepwisePlanner(kernel, kernelSettings.BingApiKey);

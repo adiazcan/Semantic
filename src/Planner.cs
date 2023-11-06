@@ -76,7 +76,7 @@ public class Planner
             "WriterSkill");
 
         var planner = new SequentialPlanner(kernel, new SequentialPlannerConfig());
-        var plan = await planner.CreatePlanAsync("Summarize an input, translate to spanish, and e-mail to John Doe");
+        var plan = await planner.CreatePlanAsync("Summarize an input, and e-mail to John Doe");
 
         // Original plan:
         // Goal: Summarize an input, translate to french, and e-mail to John Doe
@@ -122,7 +122,7 @@ public class Planner
             "WriterSkill");
 
         var planner = new SequentialPlanner(kernel, new SequentialPlannerConfig());
-        var plan = await planner.CreatePlanAsync("Summarize an input, translate to spanish, and e-mail to all customers");
+        var plan = await planner.CreatePlanAsync("Summarize an input, and e-mail to all customers");
 
         // Original plan:
         // Goal: Summarize an input, translate to french, and e-mail to John Doe
